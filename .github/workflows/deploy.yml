@@ -1,0 +1,77 @@
+name: Build and Deploy Website
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  # Указываем имя образа в GitHub Container Registry
+  GHCR_IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/aas-mw-website
+  # Указываем рабочую директорию на сервере
+  DEPLOY_DIR: /home/deploy/n8n-stack
+
+jobs:
+  build-and-push-image:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image_tag: ${{ steps.meta.outputs.version }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.GHCR_IMAGE_NAME }}
+          tags: |
+            type=sha,format=short
+            type=raw,value=latest,enable={{is_default_branch}}
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+  deploy-to-vm:
+    needs: build-and-push-image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy Website to Server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            set -e
+            cd ${{ env.DEPLOY_DIR }}
+
+            echo "--> 1. Logging in to GitHub Container Registry"
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+            echo "--> 2. Updating website image tag in .env file"
+            sed -i "s|^WEBSITE_IMAGE_TAG=.*|WEBSITE_IMAGE_TAG=${{ needs.build-and-push-image.outputs.image_tag }}|" .env
+
+            echo "--> 3. Pulling the new website image"
+            docker compose pull website
+
+            echo "--> 4. Starting or updating the website service"
+            docker compose up -d --force-recreate --no-deps website
+
+            echo "--> 5. Pruning old Docker images"
+            docker image prune -af
+
+            echo "✅ Website deployment finished successfully!"
