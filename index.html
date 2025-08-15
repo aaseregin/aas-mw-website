@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AAS-MW | DevOps Laboratory</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'JetBrains Mono', monospace;
+            background: #0d1117;
+            color: #58a6ff;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+        
+        .terminal {
+            background: #161b22;
+            border: 2px solid #30363d;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 800px;
+            height: 95vh;
+            max-height: 95vh;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .terminal-header {
+            background: #21262d;
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+        
+        .dot.red { background: #ff5f56; }
+        .dot.yellow { background: #ffbd2e; }
+        .dot.green { background: #27ca3f; }
+        
+        .terminal-title {
+            margin-left: auto;
+            font-size: 14px;
+            color: #8b949e;
+        }
+        
+        .terminal-body {
+            padding: 1.5rem;
+            background: #0d1117;
+            color: #c9d1d9;
+            line-height: 1.4;
+            font-size: 13px;
+            flex: 1;
+            overflow-y: auto;
+        }
+        
+        .prompt {
+            color: #7c3aed;
+            margin-right: 8px;
+        }
+        
+        .command {
+            color: #58a6ff;
+        }
+        
+        .output {
+            margin: 1rem 0;
+            color: #8b949e;
+        }
+        
+        .ascii-art {
+            color: #58a6ff;
+            font-size: 10px;
+            margin: 0.8rem 0;
+            white-space: pre;
+            overflow-x: auto;
+        }
+        
+        .services-list {
+            margin: 0.8rem 0;
+        }
+        
+        .service-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 0.3rem 0;
+            padding: 0.4rem;
+            background: rgba(88, 166, 255, 0.1);
+            border-left: 3px solid #58a6ff;
+            border-radius: 0 4px 4px 0;
+            transition: all 0.3s ease;
+            font-size: 12px;
+        }
+        
+        .service-item:hover {
+            background: rgba(88, 166, 255, 0.2);
+            transform: translateX(5px);
+        }
+        
+        .service-name {
+            color: #f0f6fc;
+            font-weight: 500;
+        }
+        
+        .service-url {
+            color: #58a6ff;
+            text-decoration: none;
+        }
+        
+        .service-url:hover {
+            text-decoration: underline;
+        }
+        
+        .status {
+            color: #3fb950;
+        }
+        
+        .cursor {
+            animation: blink 1s infinite;
+        }
+        
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+        
+        .info-section {
+            margin: 1.5rem 0;
+            padding: 0.8rem;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            background: rgba(33, 38, 45, 0.3);
+            font-size: 12px;
+        }
+        
+        .info-section div {
+            margin: 0.3rem 0;
+        }
+        
+        @media (max-width: 768px) {
+            .terminal {
+                width: 100%;
+                max-width: none;
+                margin: 0;
+                height: 100vh;
+                max-height: 100vh;
+                border-radius: 0;
+            }
+            
+            .terminal-body {
+                padding: 1rem;
+                font-size: 11px;
+            }
+            
+            .ascii-art {
+                font-size: 8px;
+            }
+            
+            .service-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.2rem;
+                font-size: 11px;
+            }
+            
+            .info-section {
+                font-size: 11px;
+                padding: 0.6rem;
+            }
+            
+            .output {
+                font-size: 11px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            body {
+                padding: 0;
+            }
+            
+            .terminal {
+                height: 100vh;
+                border: none;
+                border-radius: 0;
+            }
+            
+            .terminal-body {
+                padding: 0.8rem;
+                font-size: 10px;
+            }
+            
+            .ascii-art {
+                font-size: 7px;
+            }
+            
+            .service-item, .info-section, .output {
+                font-size: 10px;
+            }
+            
+            .terminal-header {
+                padding: 8px 15px;
+            }
+            
+            .terminal-title {
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="terminal">
+        <div class="terminal-header">
+            <div class="dot red"></div>
+            <div class="dot yellow"></div>
+            <div class="dot green"></div>
+            <div class="terminal-title">aas-mw.com — Terminal</div>
+        </div>
+        <div class="terminal-body">
+            <div>
+                <span class="prompt">user@aas-mw:~$</span>
+                <span class="command">whoami</span>
+            </div>
+            <div class="output">AAS-MW DevOps Laboratory</div>
+            
+            <div>
+                <span class="prompt">user@aas-mw:~$</span>
+                <span class="command">cat banner.txt</span>
+            </div>
+            <div class="ascii-art">
+<pre style="color: #9945FF; font-family: monospace;">
+--[[                                                                                                                                                                           
+<pre style="color: #9945FF; font-family: monospace;">                                                                                                                                                                                
+               AAA                              AAA                  SSSSSSSSSSSSSSS                  MMMMMMMM               MMMMMMMMWWWWWWWW                           WWWWWWWW
+              A:::A                            A:::A               SS:::::::::::::::S                 M:::::::M             M:::::::MW::::::W                           W::::::W
+             A:::::A                          A:::::A             S:::::SSSSSS::::::S                 M::::::::M           M::::::::MW::::::W                           W::::::W
+            A:::::::A                        A:::::::A            S:::::S     SSSSSSS                 M:::::::::M         M:::::::::MW::::::W                           W::::::W
+           A:::::::::A                      A:::::::::A           S:::::S                             M::::::::::M       M::::::::::M W:::::W           WWWWW           W:::::W 
+          A:::::A:::::A                    A:::::A:::::A          S:::::S                             M:::::::::::M     M:::::::::::M  W:::::W         W:::::W         W:::::W  
+         A:::::A A:::::A                  A:::::A A:::::A          S::::SSSS                          M:::::::M::::M   M::::M:::::::M   W:::::W       W:::::::W       W:::::W   
+        A:::::A   A:::::A                A:::::A   A:::::A          SS::::::SSSSS     --------------- M::::::M M::::M M::::M M::::::M    W:::::W     W:::::::::W     W:::::W    
+       A:::::A     A:::::A              A:::::A     A:::::A           SSS::::::::SS   -:::::::::::::- M::::::M  M::::M::::M  M::::::M     W:::::W   W:::::W:::::W   W:::::W     
+      A:::::AAAAAAAAA:::::A            A:::::AAAAAAAAA:::::A             SSSSSS::::S  --------------- M::::::M   M:::::::M   M::::::M      W:::::W W:::::W W:::::W W:::::W      
+     A:::::::::::::::::::::A          A:::::::::::::::::::::A                 S:::::S                 M::::::M    M:::::M    M::::::M       W:::::W:::::W   W:::::W:::::W       
+    A:::::AAAAAAAAAAAAA:::::A        A:::::AAAAAAAAAAAAA:::::A                S:::::S                 M::::::M     MMMMM     M::::::M        W:::::::::W     W:::::::::W        
+   A:::::A             A:::::A      A:::::A             A:::::A   SSSSSSS     S:::::S                 M::::::M               M::::::M         W:::::::W       W:::::::W         
+  A:::::A               A:::::A    A:::::A               A:::::A  S::::::SSSSSS:::::S                 M::::::M               M::::::M          W:::::W         W:::::W          
+ A:::::A                 A:::::A  A:::::A                 A:::::A S:::::::::::::::SS                  M::::::M               M::::::M           W:::W           W:::W           
+AAAAAAA                   AAAAAAAAAAAAAA                   AAAAAAA SSSSSSSSSSSSSSS                    MMMMMMMM               MMMMMMMM            WWW             WWW            
+</pre>                                                                                                                                                                              
+--]]
+       
+
+DevOps • Automation • Monitoring
+            </div>
+            
+            <div>
+                <span class="prompt">user@aas-mw:~$</span>
+                <span class="command">docker ps --format "table {{.Names}}\t{{.Status}}"</span>
+            </div>
+            <div class="services-list">
+                <div class="service-item">
+                    <span class="service-name">traefik</span>
+                    <a href="https://traefik.aas-mw.com/" class="service-url" target="_blank">traefik.aas-mw.com</a>
+                    <span class="status">RUNNING</span>
+                </div>
+                <div class="service-item">
+                    <span class="service-name">portainer</span>
+                    <a href="https://portainer.aas-mw.com/" class="service-url" target="_blank">portainer.aas-mw.com</a>
+                    <span class="status">RUNNING</span>
+                </div>
+                <div class="service-item">
+                    <span class="service-name">netdata</span>
+                    <a href="https://netdata.aas-mw.com/" class="service-url" target="_blank">netdata.aas-mw.com</a>
+                    <span class="status">RUNNING</span>
+                </div>
+                <div class="service-item">
+                    <span class="service-name">n8n</span>
+                    <a href="https://n8n.aas-mw.com/" class="service-url" target="_blank">n8n.aas-mw.com</a>
+                    <span class="status">RUNNING</span>
+                </div>
+                <div class="service-item">
+                    <span class="service-name">redis</span>
+                    <a href="https://redis.aas-mw.com/" class="service-url" target="_blank">redis.aas-mw.com</a>
+                    <span class="status">RUNNING</span>
+                </div>
+                <div class="service-item">
+                    <span class="service-name">auth</span>
+                    <a href="https://auth.aas-mw.com/" class="service-url" target="_blank">auth.aas-mw.com</a>
+                    <span class="status">RUNNING</span>
+                </div>
+                <div class="service-item">
+                    <span class="service-name">pgadmin</span>
+                    <a href="https://pgadmin.aas-mw.com/" class="service-url" target="_blank">pgadmin.aas-mw.com</a>
+                    <span class="status">RUNNING</span>
+                </div>
+            </div>
+            
+            <div>
+                <span class="prompt">user@aas-mw:~$</span>
+                <span class="command">cat contact.txt</span>
+            </div>
+            <div class="info-section">
+                <div><strong>🏢 AAS-MW Laboratory</strong></div>
+                <div>📧 Email: i@aaseregin.ru</div>
+                <div>💬 Telegram: <a href="https://t.me/seregin_andrei" class="service-url" target="_blank">@seregin_andrei</a></div>
+                <div>🌐 Domain: aas-mw.com</div>
+                <div>⚡ Stack: Docker + Ansible + Traefik</div>
+                <div>🎯 Focus: Automation, Monitoring, DevOps</div>
+            </div>
+            
+            <div>
+                <span class="prompt">user@aas-mw:~$</span>
+                <span class="command">ansible --version && uname -a</span>
+            </div>
+            <div class="output">
+ansible [core 2.16.0]<br>
+powered by <span style="color: #58a6ff; font-weight: 500;">ansible</span> automation platform<br>
+<br>
+Linux aas-mw 6.1.0-amd64 #1 SMP x86_64 GNU/Linux<br>
+hosted by <span style="color: #f79009; font-weight: 500;">vdsina.com</span>
+            </div>
+            
+            <div>
+                <span class="prompt">user@aas-mw:~$</span>
+                <span class="cursor">_</span>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
